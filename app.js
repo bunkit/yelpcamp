@@ -2,55 +2,31 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const Campground = require("./models/campground");
+const seedDB = require("./seed");
 
-const Schema = mongoose.Schema;
-const ObjectId = Schema.ObjectId;
-
-// conecting to DB
+// CONECTING TO DB
 mongoose.connect('mongodb://localhost/yelp_camp', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 });
 
-//SCHEMA SETUP
-const campgroundSchema = new mongoose.Schema({
-    name: String,
-    image: String,
-    description: String
-})
 
-
-const Campground = mongoose.model('Campground', campgroundSchema);
-
-//for post rncode
+//FOR POST RNCODE
 app.use(bodyParser.urlencoded({extended: true}));
-
 app.set('view engine', 'ejs');
 
+// RESETING DATA
+seedDB();
+
+// HOMEPAGE
 app.get('/', function (req,res) { 
     res.render('landing');
 });
 
-
-//  Campground.create(
-//    {
-//      name: "Leda Station",
-//      image:
-//        "https://images.unsplash.com/photo-1510312305653-8ed496efae75?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
-//      description:
-//        "You can't override the driver without compressing the optical XML system!"
-//    },
-//    function(err, campground) {
-//      if (err) {
-//        console.log(err);
-//      } else {
-//        console.log(campground); 
-//     }
-//    }
-//  );
-
+//CAMGROUND INDEX
 app.get('/campgrounds', function (req,res) { 
-    // Get all campgrounds from db
+    // GET ALL CAMPGROUNDS FROM DB
     Campground.find({}, function (err, allCampgrounds) {
         if (err) {
             console.log(err);
@@ -74,8 +50,8 @@ app.post('/campgrounds', function(req,res) {
         }
     });
 
-    // get data from form and add to camgrounds array
-    // redirect back to campgrounds page
+    // GET DATA FROM FORM AND ADD TO CAMGROUNDS ARRAY
+    // REDIRECT BACK TO CAMPGROUNDS PAGE
 });
 
 app.get('/campgrounds/new', function (req,res) {
@@ -83,12 +59,12 @@ app.get('/campgrounds/new', function (req,res) {
 });
 
 app.get("/campgrounds/:id", function(req, res) {
-    //find campground with provided id 
-    Campground.findById(req.params.id, function(err,foundCampground) {
+    //FIND CAMPGROUND WITH PROVIDED ID 
+    Campground.findById(req.params.id).populate("comments").exec(function(err,foundCampground) {
         if (err) {
             console.log(err);
         } else {
-            // show the campgroun info
+            // SHOW THE CAMPGROUND INFO
             res.render('show', {campground: foundCampground});
         }
     });
