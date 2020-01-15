@@ -16,7 +16,7 @@ mongoose.connect('mongodb://localhost/yelp_camp', {
 app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs');
 
-// RESETING DATA
+// RECREATING DATA
 seedDB();
 
 // HOMEPAGE
