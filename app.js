@@ -15,55 +15,13 @@ mongoose.connect('mongodb://localhost/yelp_camp', {
 //SCHEMA SETUP
 const campgroundSchema = new mongoose.Schema({
     name: String,
-    image: String
+    image: String,
+    description: String
 })
+
 
 const Campground = mongoose.model('Campground', campgroundSchema);
 
-
-
- let campgrounds = [
-        {
-            name: "Thelma Fort",
-            image: "http://lorempixel.com/500/250/city/1"
-        },
-        {
-            name: "Hamill Estate",
-            image: "http://lorempixel.com/500/250/city/2"
-        },
-        {
-            name: "Anderson Ville",
-            image: "http://lorempixel.com/500/250/city/3"
-        },
-        {
-            name: "Reichert Ferry",
-            image: "http://lorempixel.com/500/250/city/4"
-        },
-        {
-            name: "Larkin Trafficway",
-            image: "http://lorempixel.com/500/250/city/5"
-        },
-        {
-            name: "Oberbrunner Haven",
-            image: "http://lorempixel.com/500/250/city/6"
-        },
-        {
-            name: "Gilberto Course",
-            image: "http://lorempixel.com/500/250/city/7"
-        },
-        {
-            name: "Reynolds Knolls",
-            image: "http://lorempixel.com/500/250/city/8"
-        },
-        {
-            name: "Gutkowski Terrace",
-            image: "http://lorempixel.com/500/250/city/9"
-        },
-        {
-            name: "Chadd Points",
-            image: "http://lorempixel.com/500/250/city/10"
-        }
-    ];
 //for post rncode
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -73,24 +31,68 @@ app.get('/', function (req,res) {
     res.render('landing');
 });
 
+
+//  Campground.create(
+//    {
+//      name: "Leda Station",
+//      image:
+//        "https://images.unsplash.com/photo-1510312305653-8ed496efae75?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
+//      description:
+//        "You can't override the driver without compressing the optical XML system!"
+//    },
+//    function(err, campground) {
+//      if (err) {
+//        console.log(err);
+//      } else {
+//        console.log(campground); 
+//     }
+//    }
+//  );
+
 app.get('/campgrounds', function (req,res) { 
-    res.render('campgrounds', {campgrounds:campgrounds});
+    // Get all campgrounds from db
+    Campground.find({}, function (err, allCampgrounds) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.render('index', {campgrounds:allCampgrounds});
+        }
+    });
 });
 
 app.post('/campgrounds', function(req,res) {
     let name = req.body.name;
     let image = req.body.image;
-    let newCampground = {name: name, image:image}
-    campgrounds.push(newCampground);
+    let desc = req.body.description;
+    let newCampground = {name: name, image:image, description:desc}
 
-    res.redirect('/campgrounds');
+    Campground.create( newCampground, function(err, campground) {
+        if (err) {
+        console.log(err);
+        } else {
+            res.redirect("/campgrounds");
+        }
+    });
+
     // get data from form and add to camgrounds array
     // redirect back to campgrounds page
 });
 
 app.get('/campgrounds/new', function (req,res) {
     res.render('new');
-})
+});
+
+app.get("/campgrounds/:id", function(req, res) {
+    //find campground with provided id 
+    Campground.findById(req.params.id, function(err,foundCampground) {
+        if (err) {
+            console.log(err);
+        } else {
+            // show the campgroun info
+            res.render('show', {campground: foundCampground});
+        }
+    });
+});
 
 app.listen(process.env.PORT || 3000, process.env.IP, function() {
     console.log('The YelpCamp Server has started');
