@@ -2,8 +2,11 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const passport = require("passport");
+const LocalStrategy = require("passport-local");
 const Campground = require("./models/campground");
 const Comment = require("./models/comment");
+const User = require("./models/user");
 const seedDB = require("./seed");
 
 // CONECTING TO DB
@@ -20,6 +23,19 @@ app.use(express.static(__dirname + "/public"));
 
 // RECREATING DATA
 seedDB();
+
+//PASSPORT CONFIG
+app.use(require("express-session")({
+    secret: "siapa yang bertahan dia yang akan tumbuh",
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
 
 // HOMEPAGE
 app.get('/', function (req,res) { 
@@ -109,6 +125,30 @@ app.post("/campgrounds/:id/comments/", function(req, res) {
             });
         }
     });
+});
+
+
+//=================================
+// AUTH ROUTES
+//=================================
+
+// Show register form
+app.get("/register", function(req,res){
+    res.render("register");
+});
+
+// handle sign up logic
+app.post("/register", function(req, res){
+    let newUser = new User({username: req.body.username});
+    User.register(newUser, req.body.password, function(err, user){
+        if (err) {
+            console.log(err);
+            return res.render("register");
+        }
+        passport.authenticate("local")(req, res, function(){
+            res.redirect("/campgrounds");
+        })
+    })
 });
 
 app.listen(process.env.PORT || 3000, process.env.IP, function() {
